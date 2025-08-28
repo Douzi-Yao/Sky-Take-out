@@ -1,14 +1,18 @@
 package com.sky.handler;
 
+import com.sky.constant.MessageConstant;
 import com.sky.exception.BaseException;
 import com.sky.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.sql.SQLIntegrityConstraintViolationException;
+
 /**
  * 全局异常处理器，处理项目中抛出的业务异常
  */
+// @ControllerAdvice + @ResponseBody的组合注解,项目里所有 @RestController（或 @Controller）抛出的异常都能被它捕获
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
@@ -24,4 +28,22 @@ public class GlobalExceptionHandler {
         return Result.error(ex.getMessage());
     }
 
+    /**
+     * 处理SQL异常
+     * @param ex
+     * @return
+     */
+    @ExceptionHandler // 通过该注解指定当前方法要捕获哪一类型的异常
+    public Result exceptionHandler(SQLIntegrityConstraintViolationException ex){
+        String message = ex.getMessage(); // 获取异常信息
+        // Duplicate entry 'zhangsan' for key 'employee.idx_username'
+        if(message.contains("Duplicate entry")){
+            String[] split = message.split(" ");
+            String username = split[2];  // 获取"'zhangsan'"
+            String msg = username + MessageConstant.ALREADY_EXISTS;
+            return Result.error(msg);
+        }else{ // 若不是用户已存在问题
+            return Result.error(MessageConstant.UNKNOWN_ERROR);
+        }
+    }
 }
