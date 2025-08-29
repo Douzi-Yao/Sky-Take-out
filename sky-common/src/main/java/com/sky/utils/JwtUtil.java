@@ -51,6 +51,7 @@ public class JwtUtil {
                 // 设置签名的秘钥
                 .setSigningKey(secretKey.getBytes(StandardCharsets.UTF_8))
                 // 设置需要解析的jwt
+                // getbody()方法用于获取JWT令牌第二部分,也就是自定义内容
                 .parseClaimsJws(token).getBody();
         return claims;
     }
