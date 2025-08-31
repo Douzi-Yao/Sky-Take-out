@@ -138,4 +138,32 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeMapper.update(employee);
     }
 
+    /**
+     * 根据id查询员工信息
+     * @param id
+     * @return
+     */
+    public Employee getById(Long id) {
+        Employee employee = employeeMapper.getById(id);
+        // 直接传递employee将会传递给前端password,不希望传递密码给前端,在查询时处理密码成****。进一步加强安全性
+        employee.setPassword("****");
+        return employee;
+    }
+
+    @Override
+    public void update(EmployeeDTO employeeDTO) {
+        // 传入DTO为了方便封装前端提交数据
+        // 但对于传入持久层DAO层,建议使用实体类
+        Employee employee = new Employee();
+
+        // 对象属性拷贝: 源employeeDTO->目标employee 需要属性名一致
+        BeanUtils.copyProperties(employeeDTO, employee);
+
+        employee.setUpdateTime(LocalDateTime.now());
+        // 在拦截器JwtTokenAdminInterceptor.java部分调用ThreadLocal的set方法已经设置好当前id
+        employee.setUpdateUser(BaseContext.getCurrentId());
+
+        employeeMapper.update(employee);
+    }
+
 }
