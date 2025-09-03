@@ -85,12 +85,12 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPassword(DigestUtils.md5DigestAsHex("123456".getBytes()));
 
         // 设置当前记录的创建时间和修改时间
-        employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());
+//        employee.setCreateTime(LocalDateTime.now());
+//        employee.setUpdateTime(LocalDateTime.now());
 
         // 设置当前记录创建时间创建人id和修改人id
-        employee.setCreateUser(BaseContext.getCurrentId());
-        employee.setUpdateUser(BaseContext.getCurrentId());
+    //        employee.setCreateUser(BaseContext.getCurrentId());
+    //        employee.setUpdateUser(BaseContext.getCurrentId());
 
         employeeMapper.insert(employee);
     }
@@ -131,7 +131,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = Employee.builder()
                 .status(status)
                 .id(id)
-                .updateTime(LocalDateTime.now())
+                //.updateTime(LocalDateTime.now())
                 .build();
 
         // 调用update方法实现动态更新
@@ -159,9 +159,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         // 对象属性拷贝: 源employeeDTO->目标employee 需要属性名一致
         BeanUtils.copyProperties(employeeDTO, employee);
 
-        employee.setUpdateTime(LocalDateTime.now());
-        // 在拦截器JwtTokenAdminInterceptor.java部分调用ThreadLocal的set方法已经设置好当前id
-        employee.setUpdateUser(BaseContext.getCurrentId());
+//        employee.setUpdateTime(LocalDateTime.now());
+//        // 在拦截器JwtTokenAdminInterceptor.java部分调用ThreadLocal的set方法已经设置好当前id
+//        employee.setUpdateUser(BaseContext.getCurrentId());
 
         employeeMapper.update(employee);
     }
