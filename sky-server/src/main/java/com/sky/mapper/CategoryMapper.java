@@ -6,6 +6,9 @@ import com.sky.entity.Category;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 @Mapper
 public interface CategoryMapper {
@@ -30,4 +33,22 @@ public interface CategoryMapper {
      * @return
      */
     Page<Category> pageQuery(CategoryPageQueryDTO categoryPageQueryDTO);
+
+    /**
+     * 根据id修改分类
+     * @param category
+     */
+    void update(Category category);
+
+    /**
+     * 根据类型查询分类
+     * 不能直接 @Select("select * from category where type = #{type}")
+     * 因为：
+     * 1、只展示已启用商品 status = 1
+     * 2、type == null则展示全部,所以需要使用动态sql
+     * 3、根据sort升序排序,create_time降序排序
+     * @param type
+     * @return
+     */
+    List<Category> list(Integer type);
 }
