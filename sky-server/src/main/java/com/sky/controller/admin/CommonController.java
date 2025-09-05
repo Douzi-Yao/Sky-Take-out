@@ -68,11 +68,11 @@ public class CommonController {
         // 获取后缀,如"a.jpg"就获取"jpg"
         // 获取最后一个"."的index
         int index = originalFilename.lastIndexOf(".");
-        // 获取后缀
+        // 获取后缀,截取原始文件名后缀
         String extention = originalFilename.substring(index);
         // 判断上传上来的文件是否符合是"图片"需求
-        if(!extention.equalsIgnoreCase("png") && !extention.equalsIgnoreCase("jpg")
-            && !extention.equalsIgnoreCase("jpeg")){
+        if(!extention.equalsIgnoreCase(".png") && !extention.equalsIgnoreCase(".jpg")
+            && !extention.equalsIgnoreCase(".jpeg")){
             return Result.error(MessageConstant.FILE_FORMAT_NOT_SUPPORTED);
         }
         // UUID拼接,构造唯一的文件名(不能重复) - uuid 通用唯一识别码 4f7e3efc-6002-493d-a6b2-52b12675e099
@@ -97,7 +97,7 @@ public class CommonController {
         }
 
         // 你可以根据实际情况调整返回的文件访问链接
-        String fileUrl = "http://localhost:8081/static/" + newFileName;
+        String fileUrl = "http://localhost:8081/upload/" + newFileName;
 
         return Result.success(fileUrl);
     }
