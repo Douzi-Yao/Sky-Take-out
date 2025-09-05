@@ -37,7 +37,6 @@ public class AutoFillAspect {
 
     /**
      * 前置通知,在通知中进行公共字段的赋值
-     * TODO:了解为什么@Around通知，获取连接点信息只能使用ProceedingJoinPoint;- 对于其他四种通知，获取连接点信息只能使用JoinPoint，它是 ProceedingJoinPoint 的父类型
      */
     @Before("autoFillPointCut()")  // 当匹配上切点表达式时则会执行该方法
     public void autoFill(JoinPoint joinPoint){

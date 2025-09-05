@@ -25,4 +25,10 @@ public class MessageConstant {
     public static final String ORDER_NOT_FOUND = "订单不存在";
     public static final String ALREADY_EXISTS = "已存在";
 
+    public static final String FILE_NOT_EMPTY = "文件不能为空";
+    public static final String FILE_NAME_INVALID = "文件名无效";
+    public static final String FILE_FORMAT_NOT_SUPPORTED = "文件格式不支持";
+    public static final String ILLEGAL_PATH = "非法路径";
+
+
 }
