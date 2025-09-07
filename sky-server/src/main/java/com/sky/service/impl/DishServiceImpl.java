@@ -120,15 +120,71 @@ public class DishServiceImpl implements DishService {
 //        for (Long id : ids) {
 //            dishMapper.deleteById(id);
 //            // 删除菜品关联的口味数据
-//            dishFlavorMapper.deleteByDishId(id);
+//            dishFlavorMapper.deleteByDishId(id    );
 //        }
-
 
         // 根据菜品id集合批量删除关联的口味数据
         dishFlavorMapper.deleteByDishIds(ids);
         // 根据菜品id集合批量删除菜品数据
         dishMapper.deleteByIds(ids);
+    }
 
+    /**
+     * 根据id查询菜品和对应的口味数据
+     * @param id
+     * @return
+     */
+    public DishVO getByIdWithFlavor(Long id) {
+        // 根据id查询菜品数据
+        Dish dish = dishMapper.getById(id);
 
+        // 根据菜品id查询口味数据
+        List<DishFlavor> flavors = dishFlavorMapper.getByDishId(id);
+
+        // 将查询到的数据封装到VO
+        DishVO dishVO = new DishVO();
+        BeanUtils.copyProperties(dish, dishVO);
+        // 不能对flavors进行对象拷贝BeanUtils.copyProperties(flavors, dishVO)
+        // 因为BeanUtils把flavors这个List对象本身当成“源 bean”，而List接口里并没有一个名叫flavors的属性，更没有getFlavors()方法
+        // 因此BeanUtils找不到同名字段，复制量为 0
+        dishVO.setFlavors(flavors);
+
+        return dishVO;
+    }
+
+    /**
+     * 根据id修改菜品基本信息和对应的口味信息
+     * 需要加事务：该方法涉及两个数据库操作
+     * 这两个操作必须保持原子性，即要么全部成功，要么全部失败回滚。
+     * 如果不加事务，可能在删除旧口味后、插入新口味前出现异常，导致数据不一致。因此需使用 @Transactional 注解保证事务一致性。
+     * @param dishDTO
+     */
+    @Transactional
+    public void updateWithFlavor(DishDTO dishDTO) {
+        // 修改菜品表基本信息
+        // 可以直接传dishDTO,但不合适。因为dishDTO还包含了口味数据,而当前只修改菜品表基本信息
+        Dish dish = new Dish();
+        BeanUtils.copyProperties(dishDTO, dish);
+        dishMapper.update(dish);
+
+        //关联表可以这么做,但其他表不可以。前提是口味表不能作为父表，也就是其他表的外键，因为每次修改表口味的id会变
+        //删除原有口味数据
+        dishFlavorMapper.deleteByDishId(dishDTO.getId());
+
+        //重新插入口味数据
+        List<DishFlavor> flavors = dishDTO.getFlavors();
+        // 口味非必须,需要判断用户是否提交口味
+        if(flavors != null && flavors.size() > 0){
+            // forEach + lambda表达式dishId值
+            // dishId没有设值 因此需要循环遍历集合flavors 给里面的dishId赋上对应菜品的id
+            flavors.forEach(dishFlavor -> {
+                dishFlavor.setDishId(dishDTO.getId());
+            });
+
+            // 向口味表插入n条数据
+            // 无需遍历集合,可以直接插入。
+            // Mybatis的动态sql支持批量插入<foreach>
+            dishFlavorMapper.insertBatch(flavors);
+        }
     }
 }
