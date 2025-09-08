@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -224,5 +225,23 @@ public class DishServiceImpl implements DishService {
                 }
             }
         }
+    }
+
+    /**
+     * 根据分类id查询菜品
+     * 为了复用已有的 DishMapper中的查询逻辑，通过构建Dish对象并设置categoryId和status属性，
+     * 可以利用 MyBatis 的动态 SQL 功能，实现更灵活和可扩展的查询条件。如果直接传入 categoryId，则需要在mapper中单独编写新的查询方法，不利于代码复用和维护。
+     * @param categoryId
+     * @return
+     */
+    public List<Dish> list(Long categoryId) {
+        // 不仅要categoryId符合，实际还要符合启售状态的菜品才可以查询得到
+        Dish dish = Dish.builder()
+                .categoryId(categoryId)
+                .status(StatusConstant.ENABLE)
+                .build();
+
+        // 如果查询到多个实体，MyBatis 会自动将结果封装成 List 集合返回。
+        return dishMapper.list(dish);
     }
 }
