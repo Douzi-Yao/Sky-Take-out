@@ -18,4 +18,10 @@
         </foreach>
     </insert>
 
+    <delete id="deleteBySetmealIdBatch">
+        delete from setmeal_dish where setmeal_id in
+        <foreach collection="setmealIds" item="setmealId" separator="," open="(" close=")">
+            #{setmealId}
+        </foreach>
+    </delete>
 </mapper>
