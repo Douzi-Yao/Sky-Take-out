@@ -9,9 +9,11 @@ import com.sky.dto.SetmealPageQueryDTO;
 import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
 import com.sky.exception.DeletionNotAllowedException;
+import com.sky.mapper.CategoryMapper;
 import com.sky.mapper.SetmealDishMapper;
 import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
+import com.sky.result.Result;
 import com.sky.service.SetmealService;
 import com.sky.vo.SetmealVO;
 import org.springframework.beans.BeanUtils;
@@ -28,6 +30,8 @@ public class SetmealServiceImpl implements SetmealService {
     private SetmealMapper setmealMapper;
     @Autowired
     private SetmealDishMapper setmealDishMapper;
+    @Autowired
+    private CategoryMapper categoryMapper;
 
     /**
      * 新增套餐，同时需要保存套餐和菜品的关联关系
@@ -101,4 +105,50 @@ public class SetmealServiceImpl implements SetmealService {
         setmealDishMapper.deleteBySetmealIdBatch(ids);
 
     }
+
+    /**
+     * 根据id查询套餐，用于修改页面回显数据
+     * @param id
+     * @return
+     */
+    public SetmealVO getById(Long id) {
+        // 创建SetmealVO对象,把查询回来的Setmeal对象BeanUtils赋值
+        SetmealVO setmealVO = new SetmealVO();
+        Setmeal setmeal = setmealMapper.getById(id);
+        BeanUtils.copyProperties(setmeal, setmealVO);
+
+        // 从setmeal_dish表中根据setmealId获取SetmealDish类对象
+        List<SetmealDish> setmealDishes = setmealDishMapper.getBySetmealId(id);
+        setmealVO.setSetmealDishes(setmealDishes);
+
+        return setmealVO;
+    }
+
+    /**
+     * 修改套餐
+     * @param setmealDTO
+     */
+    public void update(SetmealDTO setmealDTO) {
+        Setmeal setmeal = new Setmeal();
+        BeanUtils.copyProperties(setmealDTO, setmeal);
+
+        //1、修改套餐表，执行update
+        setmealMapper.update(setmeal);
+
+        //2、删除套餐和菜品的关联关系，操作setmeal_dish表，执行delete
+        // 修改setmeal_dish关系表,先将该setmealId对应的dish全删除,然后再重新赋值
+        setmealDishMapper.deleteById(setmeal.getId());
+
+        List<SetmealDish> setmealDishes = setmealDTO.getSetmealDishes();
+        // 注意：重新赋值需要重新赋值每一个setmealId吗？
+        // 答案：需要的，因为前端传来的setmealId是非必须的，传进来的数据可能没有包括setmealId
+        setmealDishes.forEach(setmealDish -> {
+            setmealDish.setSetmealId(setmeal.getId());
+        });
+
+        //3、重新插入套餐和菜品的关联关系，操作setmeal_dish表，执行insert
+        setmealDishMapper.insertBatch(setmealDishes);
+    }
+
+
 }
