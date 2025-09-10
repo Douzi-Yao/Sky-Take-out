@@ -6,10 +6,12 @@ import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
+import com.sky.entity.Dish;
 import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
 import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.CategoryMapper;
+import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
 import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
@@ -21,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -32,6 +35,8 @@ public class SetmealServiceImpl implements SetmealService {
     private SetmealDishMapper setmealDishMapper;
     @Autowired
     private CategoryMapper categoryMapper;
+    @Autowired
+    private DishMapper dishMapper;
 
     /**
      * 新增套餐，同时需要保存套餐和菜品的关联关系
@@ -148,6 +153,42 @@ public class SetmealServiceImpl implements SetmealService {
 
         //3、重新插入套餐和菜品的关联关系，操作setmeal_dish表，执行insert
         setmealDishMapper.insertBatch(setmealDishes);
+    }
+
+    /**
+     * 套餐起售停售
+     * @param status
+     * @param id
+     */
+    public void startOrStop(Integer status, Long id) {
+        // 判断setmealId对应dish是否有停售菜品,如果有,静止停售
+        // 从setmeal_dish表查找对应dish_id
+        // 去dish表查找对应id启售数目
+
+        if(status == StatusConstant.ENABLE){
+            // 通过外键关联查询套餐内菜品的启售状态，确保套餐启售时所有菜品均为启售状态，防止数据不一致。
+            // select d.* from dish d left join setmeal_dish sd on d.id = sd.dish_id where sd.setmeal_id = #{setmealId}
+            List<Dish> dishes = dishMapper.getBySetmealId(id);
+
+            // 对dishes为空的情况做防护性判断
+            if(dishes != null && dishes.size() > 0){
+                // 当前代码中 count < dishes.size() 表示有部分菜品未启售，抛出异常是合理的
+                List<Long> dishIds = new ArrayList<>();
+                dishes.forEach(dish -> {
+                    dishIds.add(dish.getId());
+                });
+                int count = dishMapper.countByIdsAndStatus(dishIds);
+                if(count < dishes.size()){
+                    throw new DeletionNotAllowedException(MessageConstant.SETMEAL_ENABLE_FAILED);
+                }
+            }
+        }
+
+        Setmeal setmeal = Setmeal.builder()
+                .status(status)
+                .id(id)
+                .build();
+        setmealMapper.update(setmeal);
     }
 
 
