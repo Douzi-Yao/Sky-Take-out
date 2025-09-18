@@ -56,4 +56,14 @@
         and status = 1
     </select>
 
+    <select id="list" resultType="com.sky.entity.Setmeal">
+        select * from setmeal
+        <where>
+            <if test="name != null">and name like concate('%', #{name}, '%')</if>
+            <if test="status != null">and status = #{status}</if>
+            <if test="categoryId != null">and category_id = #{categoryId}</if>
+        </where>
+        order by create_time desc
+    </select>
+
 </mapper>

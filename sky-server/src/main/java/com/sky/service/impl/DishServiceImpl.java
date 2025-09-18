@@ -244,4 +244,35 @@ public class DishServiceImpl implements DishService {
         // 如果查询到多个实体，MyBatis 会自动将结果封装成 List 集合返回。
         return dishMapper.list(dish);
     }
+
+    /**
+     * 根据分类id查询菜品以及菜品对应口味
+     * @param categoryId
+     * @return
+     */
+    public List<DishVO> listWithFlavor(Long categoryId) {
+        // 查询启售菜品
+        Dish dish = Dish.builder()
+                .categoryId(categoryId)
+                .status(StatusConstant.ENABLE)
+                .build();
+        List<Dish> dishList = dishMapper.list(dish);
+
+        List<DishVO> dishVOList = new ArrayList<>();
+        // 遍历查询每一个dish对应的菜品口味，封装到DishVO中，并加入dishVOList表
+        for (Dish d : dishList) {
+            DishVO dishVO = new DishVO();
+            // 获取dish对应的口味表
+            List<DishFlavor> flavors = dishFlavorMapper.getByDishId(d.getId());
+
+            // 将dish中与dishVO相同字段的属性赋值
+            BeanUtils.copyProperties(d, dishVO);
+            dishVO.setFlavors(flavors);
+
+            // 将dishVO加入dishVOList表中
+            dishVOList.add(dishVO);
+        }
+
+        return dishVOList;
+    }
 }

@@ -17,6 +17,7 @@ import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.SetmealService;
+import com.sky.vo.DishItemVO;
 import com.sky.vo.SetmealVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -191,5 +193,41 @@ public class SetmealServiceImpl implements SetmealService {
         setmealMapper.update(setmeal);
     }
 
+    /**
+     * 根据分类id查询套餐，条件查询
+     * @param categoryId
+     * @return
+     */
+    public List<Setmeal> list(Long categoryId) {
+        Setmeal setmeal = Setmeal.builder()
+                .categoryId(categoryId)
+                .status(StatusConstant.ENABLE)
+                .build();
+        // 根据条件动态查询符合条件的套餐
+        List<Setmeal> setmealList = setmealMapper.list(setmeal);
+        return setmealList;
+    }
 
+    /**
+     * 根据id查询菜品选项
+     * @param id
+     * @return
+     */
+    public List<DishItemVO> getDishItemById(Long id) {
+        // 该做法太冗余，根据黑马的做法，可以联表查询直接得到需要的数据。
+//        List<SetmealDish> setmealDishList = setmealDishMapper.getBySetmealId(id);
+//        List<DishItemVO> dishItemVOList = new ArrayList<>();
+//        for (SetmealDish setmealDish : setmealDishList) {
+//            DishItemVO dishItemVO = new DishItemVO();
+//            BeanUtils.copyProperties(setmealDish, dishItemVO);
+//            Dish dish = dishMapper.getById(setmealDish.getDishId());
+//            dishItemVO.setImage(dish.getImage());
+//            dishItemVO.setDescription(dish.getDescription());
+//            dishItemVOList.add(dishItemVO);
+//        }
+        // 直接执行联表查询，一次性从数据库获取套餐关联菜品的详细信息（如图片、描述等），并封装成 DishItemVO 列表返回
+        List<DishItemVO> dishItemVOList = setmealDishMapper.getDishItemBySetmealId(id);
+
+        return dishItemVOList;
+    }
 }
