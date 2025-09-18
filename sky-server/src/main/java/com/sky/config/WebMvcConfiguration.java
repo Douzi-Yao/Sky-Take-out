@@ -1,6 +1,7 @@
 package com.sky.config;
 
 import com.sky.interceptor.JwtTokenAdminInterceptor;
+import com.sky.interceptor.JwtTokenUserInterceptor;
 import com.sky.json.JacksonObjectMapper;
 import com.sky.properties.UploadDirProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,8 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     @Autowired
     private JwtTokenAdminInterceptor jwtTokenAdminInterceptor;
     @Autowired
+    private JwtTokenUserInterceptor jwtTokenUserInterceptor;
+    @Autowired
     private UploadDirProperties uploadDirProperties;
 
     /**
@@ -43,6 +46,11 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         registry.addInterceptor(jwtTokenAdminInterceptor)
                 .addPathPatterns("/admin/**")
                 .excludePathPatterns("/admin/employee/login");
+        // 注册用户端--小程序端自定义拦截器
+        registry.addInterceptor(jwtTokenUserInterceptor)
+                .addPathPatterns("/user/**")
+                .excludePathPatterns("/user/user/login") //排除登录请求
+                .excludePathPatterns("/user/shop/status"); //排除获取店铺营业状态,一进小程序时无需登录就可获取店铺状态
     }
 
     /**
