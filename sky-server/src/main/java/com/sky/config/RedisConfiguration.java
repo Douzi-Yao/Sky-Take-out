@@ -21,7 +21,8 @@ public class RedisConfiguration {
         // 设置redis key的序列化器 -- StringRedisSerializer 字符串类型的Redis序列化器
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         // 若想使value也直接显示,也可以对redis的value设置序列化器
-        redisTemplate.setValueSerializer(new StringRedisSerializer());
+        // 但是这里最好不要设置value的String序列化器，因为这样无法存入除String以外的其他数据
+//        redisTemplate.setValueSerializer(new StringRedisSerializer());
         return redisTemplate;
     }
 }
