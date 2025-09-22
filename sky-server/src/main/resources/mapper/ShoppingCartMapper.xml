@@ -13,11 +13,4 @@
         </where>
     </select>
 
-    <update id="update">
-        update shopping_cart
-        <set>
-
-        </set>
-    </update>
-
 </mapper>
