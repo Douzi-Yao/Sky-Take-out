@@ -129,8 +129,5 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                 shoppingCartMapper.deleteById(id);
             }
         }
-
-
     }
-
 }
