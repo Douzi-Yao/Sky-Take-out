@@ -16,16 +16,20 @@ import com.sky.exception.OrderBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
 import com.sky.result.PageResult;
+import com.sky.result.Result;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -247,4 +251,49 @@ public class OrderServiceImpl implements OrderService {
 
         return orderVO;
     }
+
+    /**
+     * 用户取消订单
+     * 订单状态 1待付款 2待接单 3已接单 4派送中 5已完成 6已取消 7退款
+     * @param id
+     */
+    public void userCancelById(Long id) throws Exception {
+        // 查询id该订单状态status
+        Orders orders = orderMapper.getById(id);
+
+        // 若查询不到，抛异常
+        if(orders == null){
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+
+        Integer status = orders.getStatus();
+        // 当状态status >= 3时，取消订单要与商家沟通，抛异常
+        if(status >= Orders.CONFIRMED){
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        Orders order = new Orders();
+        order.setId(id);
+
+        // 当状态为待接单status = 2，微信支付退款，payStatus改为2表示退款
+        if(status.equals(Orders.TO_BE_CONFIRMED)){
+            // 调用微信支付退款接口
+//            weChatPayUtil.refund(
+//                    orders.getNumber(), //商户订单号
+//                    orders.getNumber(), //商户退款单号
+//                    new BigDecimal(0.01),//退款金额，单位 元
+//                    new BigDecimal(0.01));//原订单金额
+
+            //支付状态修改为 退款
+            order.setPayStatus(Orders.REFUND);
+        }
+
+        // 更新订单状态、取消原因、取消时间
+        order.setStatus(Orders.CANCELLED);
+        order.setCancelReason("用户取消");
+        order.setCancelTime(LocalDateTime.now());
+        orderMapper.update(order);
+    }
+
+
 }
