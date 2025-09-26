@@ -35,6 +35,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -295,5 +296,37 @@ public class OrderServiceImpl implements OrderService {
         orderMapper.update(order);
     }
 
+    /**
+     * 再来一单
+     * @param id
+     */
+    public void repetition(Long id) {
+        // 获取order_detail表的order_id获取List<OrderDetail>
+        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(id);
+        Long userId = BaseContext.getCurrentId();
 
+//        // 批量插入shopping_cart
+//        List<ShoppingCart> shoppingCartList = new ArrayList<>();
+//        for (OrderDetail orderDetail : orderDetailList) {
+//            ShoppingCart shoppingCart = new ShoppingCart();
+//            BeanUtils.copyProperties(orderDetail, shoppingCart, "id");
+//            shoppingCart.setUserId(userId);
+//            shoppingCart.setCreateTime(LocalDateTime.now());
+//            shoppingCartList.add(shoppingCart);
+//        }
+//        shoppingCartMapper.insertBatch(shoppingCartList);
+
+        // 将订单详情对象转换为购物车对象
+        List<ShoppingCart> shoppingCartList = orderDetailList.stream().map(x -> {
+            ShoppingCart shoppingCart = new ShoppingCart();
+
+            // 将原订单详情里面的菜品信息重新复制到购物车对象中
+            BeanUtils.copyProperties(x, shoppingCart, "id");
+            shoppingCart.setUserId(userId);
+            shoppingCart.setCreateTime(LocalDateTime.now());
+
+            return shoppingCart;
+        }).collect(Collectors.toList());
+        shoppingCartMapper.insertBatch(shoppingCartList);
+    }
 }
