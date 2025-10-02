@@ -25,6 +25,7 @@ import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
+import com.sky.websocket.WebSocketServer;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -66,6 +67,8 @@ public class OrderServiceImpl implements OrderService {
     // 声明私有的常量，这种常量只能在类内部访问
     private static final String baiduLocationAPIUrl = "https://api.map.baidu.com/geocoding/v3";
     private static final String baiduDistanceAPIUrl = "https://api.map.baidu.com/directionlite/v1/driving";
+    @Autowired
+    private WebSocketServer webSocketServer;
 
     /**
      * 用户下单
@@ -185,6 +188,19 @@ public class OrderServiceImpl implements OrderService {
 
         log.info("调用updateStatus，用于替换微信支付更新数据库状态的问题");
         orderMapper.updateStatus(OrderStatus, OrderPaidStatus, check_out_time, orderNumber);
+
+        // 通过websocket向客户端测览器推送消息 type orderld content
+        // 获取orderId
+        Orders orders = orderMapper.getByNumber(orderNumber);
+        Long ordersId = orders.getId();
+
+        Map map = new HashMap(); // 没加泛型 key value都是Object
+        map.put("type", 1); // 1表示来单提醒 2表示客户催单
+        map.put("orderId", ordersId);
+        map.put("content", "订单号：" + orderNumber);
+
+        String json = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(json);
 
         return vo;
     }
