@@ -7,6 +7,8 @@ import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 
+import java.time.LocalDateTime;
+
 public interface OrderService {
     /**
      * 用户下单
@@ -98,4 +100,18 @@ public interface OrderService {
      * @param id
      */
     void complete(Long id);
+
+    /**
+     * 处理超时订单的方法
+     * @param pendingPayment
+     * @param now
+     */
+    void processTimeoutOrder(Integer pendingPayment, LocalDateTime now);
+
+    /**
+     * 处理一直处于派送中状态的订单
+     * @param deliveryInProgress
+     * @param now
+     */
+    void processDeliveryOrder(Integer deliveryInProgress, LocalDateTime now);
 }

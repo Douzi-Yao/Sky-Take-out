@@ -523,6 +523,47 @@ public class OrderServiceImpl implements OrderService {
         orderMapper.update(orders);
     }
 
+    /**
+     * 处理超时订单的方法
+     * @param pendingPayment
+     * @param now
+     */
+    public void processTimeoutOrder(Integer pendingPayment, LocalDateTime now) {
+        // 当前时间+(-15)分钟
+        LocalDateTime time = now.plusMinutes(-15);
+
+        // select * from orders where status = ? and order_time < 当前时间 - 15分钟
+        List<Orders> ordersList = orderMapper.getByStatusAndOrderTimeLT(Orders.PENDING_PAYMENT, time);
+
+        if(ordersList != null && ordersList.size() > 0){
+            for (Orders orders : ordersList) {
+                orders.setStatus(Orders.CANCELLED);
+                orders.setCancelReason("订单超时，自动取消");
+                orders.setCancelTime(LocalDateTime.now());
+                orderMapper.update(orders);
+            }
+        }
+    }
+
+    /**
+     * 处理一直处于派送中状态的订单
+     * @param deliveryInProgress
+     * @param now
+     */
+    public void processDeliveryOrder(Integer deliveryInProgress, LocalDateTime now) {
+        // 筛选出那些“预计送达时间”小于“当前时间”的，这样可以避免刚下单的用户被自动完成！
+        LocalDateTime time = now.plusHours(-1);
+
+        List<Orders> ordersList = orderMapper.getByStatusAndOrderTimeLT(Orders.DELIVERY_IN_PROGRESS, time);
+
+        if(ordersList != null && ordersList.size() > 0){
+            for (Orders orders : ordersList) {
+                orders.setStatus(Orders.COMPLETED);
+                orderMapper.update(orders);
+            }
+        }
+    }
+
     private List<OrderVO> getOrderVOList(Page<Orders> page){
         // 需要返回订单菜品信息，自定义OrderVO响应结果
         List<OrderVO> orderVOList = new ArrayList<>();
