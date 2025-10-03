@@ -114,4 +114,10 @@ public interface OrderService {
      * @param now
      */
     void processDeliveryOrder(Integer deliveryInProgress, LocalDateTime now);
+
+    /**
+     * 客户催单
+     * @param id
+     */
+    void reminder(Long id);
 }
