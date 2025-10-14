@@ -275,6 +275,23 @@ public class ReportServiceImpl implements ReportService {
             row.getCell(4).setCellValue(businessDataVO.getUnitPrice());
 
             // 填充明细数据
+//            // 做法一:for循环
+//            for(int i=0; i < 30;i++){
+//                LocalDate date = dateBegin.plusDays(i);
+//                // 查询某一天的营业数据
+//                businessDataVO = workspaceService.getBusinessData(LocalDateTime.of(date, LocalTime.MIN),
+//                        LocalDateTime.of(date, LocalTime.MAX));
+//                // 获得某一行
+//                row = sheet.getRow(7 + i);
+//                row.getCell(1).setCellValue(dateBegin.toString());
+//                row.getCell(2).setCellValue(businessDataVO.getTurnover());
+//                row.getCell(3).setCellValue(businessDataVO.getValidOrderCount());
+//                row.getCell(4).setCellValue(businessDataVO.getOrderCompletionRate());
+//                row.getCell(5).setCellValue(businessDataVO.getUnitPrice());
+//                row.getCell(6).setCellValue(businessDataVO.getNewUsers());
+//                dateBegin = dateBegin.plusDays(1);
+//                }
+            // 做法二:while循环
             int num = 0;
             while(!dateBegin.isAfter(dateEnd)){
                 // 查询某一天的营业数据
